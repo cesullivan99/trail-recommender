@@ -1,7 +1,7 @@
 # Trail Recommender
 ## Design Spec
 
-In this document I outline the design of the trail recommender. The format of this document is modeled off of the Dartmouth College COSC50 design spec template.
+In this document I outline the design of the trail recommender. This document is modeled off of the Dartmouth College COSC50 design spec template.
 
 ## User interface
 
