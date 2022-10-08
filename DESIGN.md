@@ -6,10 +6,7 @@ An outline of the trail recommender's design. Note that this document is modeled
 ## User interface
 
 Eventually, I will provide the trail recommender with an aesthetically pleasing UI (this will be done with a tool like PySimpleGUI). For the time being,
-however, it will simply take user input as a Python program. 
-
-The user will input the name of their favorite home trail and the name of the region they're intested in,
-and the program will output the five trails in that region that are most similar to the user's favorite home trail.
+however, it will simply take user input with basic Python I/O.
 
 ## Inputs and outputs
 
