@@ -1,0 +1,40 @@
+# Trail Recommender
+## Design Spec
+
+In this document I outline the design of the trail recommender. The format of this document is modeled off of the Dartmouth College COSC50 design spec template.
+
+## User interface
+
+Eventually, I will provide the trail recommender with an aesthetically pleasing UI (this will be done with a tool like PySimpleGUI). For the time being,
+however, it will simply take user input as a Python program. 
+
+The user will input the name of their favorite home trail and the name of the region they're intested in,
+and the program will output the five trails in that region that are most similar to the user's favorite home trail.
+
+## Inputs and outputs
+
+*Input:* The user will input
+ * the name of their favorite home trail
+ * the name of a region that they're interested in traveling to
+
+*Output:* 
+
+  The trail recommender will output a list of urls of the five trails in the specified region that are most similar to the user's favorite home trail.
+  For the time being, this output will be formatted as a series of links, but when the GUI interface is created for the trail recommender, the output will
+  be presented in a more aesthetically pleasing manner.
+
+## Functional decomposition into modules
+
+TODO
+
+## Pseudo code for logic/algorithmic flow
+
+TODO
+
+## Major data structures
+
+TODO
+
+## Testing plan
+
+TODO
