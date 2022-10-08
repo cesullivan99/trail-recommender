@@ -17,9 +17,8 @@ however, it will simply take user input with basic Python I/O.
 *Output:* 
 
   * a list of urls of the five trails in the specified region that are most similar to the user's favorite home trail.
-
-  Note: For the time being, this output will be formatted as a series of links, but when the GUI interface is created for the trail recommender, the output will
-  be presented in a more aesthetically pleasing manner.
+  
+  Note: For the time being, this output will be formatted as a series of links, but when the GUI interface is created for the trail recommender, the output   will be presented in a more aesthetically pleasing manner.
 
 ## Functional decomposition into modules
 
