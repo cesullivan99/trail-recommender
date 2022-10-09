@@ -24,7 +24,7 @@ however, it will simply take user input with basic Python I/O.
 
 1. *main*, which initializes other modules and takes user input
 2. *trail_new*, which initializes a new "trail" object
-3. *build_region_index*, which takes the name of a region as input and builds an index of "trail" vectors from that region. This index will be built with the ["annoy"](https://github.com/spotify/annoy/blob/master/README.rst) library, which esentially uses spotify's approach to build an index that scales well as *n* increases. This will be helpful if users want to search larger regions like British Columbia, which contain >100,000 trails.
+3. *build_region_index*, which takes the name of a region as input and builds an index of "trail" vectors from that region. This index will be built with the ["annoy"](https://github.com/spotify/annoy/blob/master/README.rst) library, which esentially uses spotify's approach to build an index that scales well as *n* increases. This will be helpful if users want to search larger regions like British Columbia, which contains >100,000 trails.
 4. *find_similar trails*, which takes a user's favorite home trail and the region they wish to search as input, then returns the five (approximately) closest trails in the user's specified region using cosine similarity.
 
 ## Pseudo code for logic/algorithmic flow
