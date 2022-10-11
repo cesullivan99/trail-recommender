@@ -36,8 +36,8 @@ however, it will simply take user input with basic Python I/O.
         for each trail on the page:
             create a new trail object
             add this object to the annoy index
-   use the annoy index to find the 5 (or more) trails in the specified region that are most similar to the user's favorite home trail by cosine similarity
-   retrieve the urls of these trails, package them in a nice format, and return them to the user
+    use the annoy index to find the 5 (or more) trails in the specified region that are most similar to the user's favorite home trail by cosine similarity
+    retrieve the urls of these trails, package them in a nice format, and return them to the user
   
 
 ## Major data structures
