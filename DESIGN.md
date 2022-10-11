@@ -29,7 +29,7 @@ however, it will simply take user input with basic Python I/O.
 
 ## Pseudo code for logic/algorithmic flow
 
-  parse command line for user's favorite home trail url and url of region that they'd like to travel to
+    parse command line for user's favorite home trail url and url of region that they'd like to travel to
   
 
 ## Major data structures
