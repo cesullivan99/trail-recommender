@@ -30,6 +30,14 @@ however, it will simply take user input with basic Python I/O.
 ## Pseudo code for logic/algorithmic flow
 
     parse command line for user's favorite home trail url and url of region that they'd like to travel to
+    store user's favorite home trail as a new "trail" object
+    initial an "annoy index"
+    for each page of trails in the specified region:
+        for each trail on the page:
+            create a new trail object
+            add this object to the annoy index
+   use the annoy index to find the 5 (or more) trails in the specified region that are most similar to the user's favorite home trail by cosine similarity
+   retrieve the urls of these trails, package them in a nice format, and return them to the user
   
 
 ## Major data structures
