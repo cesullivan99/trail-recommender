@@ -19,6 +19,7 @@ class Trail:
             Constructs a trail object
     """
 
+    # Constructs the trail object
     def __init__(self, name, difficulty, distance, descent, climb):
         """
         The function takes in the name, difficulty, distance, descent, and climb of a trail and assigns them to the
