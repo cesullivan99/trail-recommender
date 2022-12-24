@@ -12,13 +12,14 @@ class Trail:
 
     Attributes:
         name (str): The name of the trail
-        difficulty (int): the difficulty of the trail
         distance (int): the length of the trail
         descent (int): the length of the trail's descent
         climb (int): the length of the trail's climb
     Methods:
         __init__(name: str, difficulty: int, distance: int, descent: int)
             Constructs a trail object
+        __str__:
+            Prints a string representation of the trail
     """
 
     # Constructs the trail object
