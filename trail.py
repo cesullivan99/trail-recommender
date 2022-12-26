@@ -117,7 +117,20 @@ def build_region_index(region_name):
     soup = BeautifulSoup(response.text, 'html.parser')
     #this equals the number of trails in the given region (we find this so we know how many pages of trails to loop through in the following code)
     num_trails = int(soup.find("div", class_="resultTotal").strong.string)
-    print(str(num_trails))
+
+    #dimension of a trail object
+    # At the moment, there are 3 instance variables per object, so this value is 3
+    trail_dim = 3
+
+    # create an AnnoyIndex object to store each trail in the region as a trail object
+    # It is angular because we'll be using cosine distance
+    idx = AnnoyIndex(trail_dim, 'angular')
+
+    #Get all trails in the table on a given page
+    trails = soup.find(id="trails_table")
+    print(trails)
+
+
 
 
 
