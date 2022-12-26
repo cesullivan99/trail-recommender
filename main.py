@@ -6,3 +6,4 @@ from trail import *
 test = trail_new("the-good-part")
 print(test)
 
+build_region_index("Utah")

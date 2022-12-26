@@ -4,6 +4,7 @@
 """This module contains the Trail class, as well as relevant methods"""
 from bs4 import BeautifulSoup
 import requests
+from annoy import AnnoyIndex
 
 
 class Trail:
@@ -99,6 +100,25 @@ def trail_new(trail_name):
 
     trail_obj = Trail(name=trail_name, distance=distance_num, descent=descent_num, climb=climb_num)
     return trail_obj
+
+def build_region_index(region_name):
+    """
+    A function that takes in the name of a region and returns a AnnoyIndex object
+
+    :param region_name: the name of the region
+    :return: the AnnoyIndex object
+    """
+    #URL of the region page on Trailforks.com
+    url = "https://www.trailforks.com/region/" + region_name + "/trails/"
+    # Send a GET request to the page
+    response = requests.get(url)
+
+    # Parse the page's HTML
+    soup = BeautifulSoup(response.text, 'html.parser')
+    #this equals the number of trails in the given region (we find this so we know how many pages of trails to loop through in the following code)
+    num_trails = int(soup.find("div", class_="resultTotal").strong.string)
+    print(str(num_trails))
+
 
 
 def dist_in_ft(num_str):
