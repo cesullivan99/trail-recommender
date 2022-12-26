@@ -5,6 +5,7 @@
 from bs4 import BeautifulSoup
 import requests
 from annoy import AnnoyIndex
+import pandas as pd
 
 
 class Trail:
@@ -46,7 +47,8 @@ class Trail:
 
         :return: the name of the trail
         """
-        stringy = "Trail name: " + self.name + '\n' + "Distance: " + str(self.distance) + '\n' + "Descent/climb ratio: " + str(self.dc)
+        stringy = "Trail name: " + self.name + '\n' + "Distance: " + str(
+            self.distance) + '\n' + "Descent/climb ratio: " + str(self.dc)
         return stringy
 
 
@@ -101,6 +103,7 @@ def trail_new(trail_name):
     trail_obj = Trail(name=trail_name, distance=distance_num, descent=descent_num, climb=climb_num)
     return trail_obj
 
+
 def build_region_index(region_name):
     """
     A function that takes in the name of a region and returns a AnnoyIndex object
@@ -108,17 +111,17 @@ def build_region_index(region_name):
     :param region_name: the name of the region
     :return: the AnnoyIndex object
     """
-    #URL of the region page on Trailforks.com
+    # URL of the region page on Trailforks.com
     url = "https://www.trailforks.com/region/" + region_name + "/trails/"
     # Send a GET request to the page
     response = requests.get(url)
 
     # Parse the page's HTML
-    soup = BeautifulSoup(response.text, 'html.parser')
-    #this equals the number of trails in the given region (we find this so we know how many pages of trails to loop through in the following code)
-    num_trails = int(soup.find("div", class_="resultTotal").strong.string)
+    name_soup = BeautifulSoup(response.text, 'html.parser')
+    # this equals the number of trails in the given region (we find this so we know how many pages of trails to loop through in the following code)
+    num_trails = int(name_soup.find("div", class_="resultTotal").strong.string)
 
-    #dimension of a trail object
+    # dimension of a trail object
     # At the moment, there are 3 instance variables per object, so this value is 3
     trail_dim = 3
 
@@ -126,12 +129,32 @@ def build_region_index(region_name):
     # It is angular because we'll be using cosine distance
     idx = AnnoyIndex(trail_dim, 'angular')
 
-    #Get all trails in the table on a given page
-    trails = soup.find(id="trails_table")
-    print(trails)
+    # create a new soup with lxml library
+    soup = BeautifulSoup(response.text, 'lxml')
 
+    # Find the trail table in this soup
+    table = soup.find(id="trails_table")
 
+    #Will hold all headers in the trail table
+    headers = []
 
+    # For each header in the table, add it to our list of headers
+    for head in table.find_all('th'):
+        title = head.text.strip()
+        headers.append(title)
+    print(headers)
+
+    df = pd.DataFrame(columns=headers)
+
+    # Start at index 1 to avoid including header names, go through each row in the table
+    # This code referenced from https://www.youtube.com/watch?v=PY2I4UIZk48
+    for row in table.find_all('tr')[1:]:
+        data = row.find_all('td')
+        row_data = [td.text.strip() for td in data]
+        length = len(df)
+        # Add the data from this row to the table
+        df.loc[length] = row_data
+    print(df)
 
 
 def dist_in_ft(num_str):
