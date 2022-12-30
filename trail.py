@@ -6,7 +6,8 @@ from bs4 import BeautifulSoup
 import requests
 from annoy import AnnoyIndex
 import pandas as pd
-
+import math
+import time
 
 class Trail:
     """
@@ -113,49 +114,23 @@ def build_region_index(region_name):
     """
     # URL of the region page on Trailforks.com
     url = "https://www.trailforks.com/region/" + region_name + "/trails/"
-    # Send a GET request to the page
-    response = requests.get(url)
 
-    # Parse the page's HTML
-    name_soup = BeautifulSoup(response.text, 'html.parser')
     # this equals the number of trails in the given region (we find this so we know how many pages of trails to loop through in the following code)
-    num_trails = int(name_soup.find("div", class_="resultTotal").strong.string)
+    num_trails = num_trails_in_rgn(url)
+    #the number of different trailforks.com pages with trails from this region, assuming 100 per page
+    num_trail_pages = math.ceil(num_trails/100)
 
-    # dimension of a trail object
-    # At the moment, there are 3 instance variables per object, so this value is 3
-    trail_dim = 3
+    #we pass in None for the df so that a df will be created
+    df = scrape_trail_table(url, None)
 
-    # create an AnnoyIndex object to store each trail in the region as a trail object
-    # It is angular because we'll be using cosine distance
-    idx = AnnoyIndex(trail_dim, 'angular')
-
-    # create a new soup with lxml library
-    soup = BeautifulSoup(response.text, 'lxml')
-
-    # Find the trail table in this soup
-    table = soup.find(id="trails_table")
-
-    #Will hold all headers in the trail table
-    headers = []
-
-    # For each header in the table, add it to our list of headers
-    for head in table.find_all('th'):
-        title = head.text.strip()
-        headers.append(title)
-    print(headers)
-
-    df = pd.DataFrame(columns=headers)
-
-    # Start at index 1 to avoid including header names, go through each row in the table
-    # This code referenced from https://www.youtube.com/watch?v=PY2I4UIZk48
-    for row in table.find_all('tr')[1:]:
-        data = row.find_all('td')
-        row_data = [td.text.strip() for td in data]
-        length = len(df)
-        # Add the data from this row to the table
-        df.loc[length] = row_data
+    # repeat the above process for all pages of trails in the region
+    for i in range(1, num_trail_pages):
+        #sleep for 5 seconds so we don't annoy trailforks.com :)
+        time.sleep(5)
+        # URL of the relevant page
+        curr_url = "https://www.trailforks.com/region/" + region_name + "/trails/" + "?activitytype=1&page=" + str(i+1)
+        scrape_trail_table(curr_url, df)
     print(df)
-
 
 def dist_in_ft(num_str):
     """
@@ -171,3 +146,66 @@ def dist_in_ft(num_str):
     # if input is in feet, just convert it to an integer
     elif "ft" in num_str:
         return int(num_str.split()[0])
+
+
+def num_trails_in_rgn(region_url):
+    """
+    > This function takes the url of a trailforks.com region and returns the number of trails in that region.
+
+    :param region_url: the url of the region you want to get the number of trails for
+    """
+
+    response = requests.get(region_url)
+    # Parse the page's HTML
+    name_soup = BeautifulSoup(response.text, 'html.parser')
+    # this equals the number of trails in the given region (we find this so we know how many pages of trails to loop through in the following code)
+    num_trails = int(name_soup.find("div", class_="resultTotal").strong.string)
+    print("there are " + str(num_trails) + " trails in the region.")
+    return num_trails
+
+
+def scrape_trail_table(url, df=None):
+    """
+    This function takes in a url and a dataframe object and scrapes the data from the url's trail table into the given dataframe.
+    The modified dataframe is returned.
+    Note that the given url must lead to a trailforks.com page containing a table of trails.
+    Also, note that a url can be passed in without a dataframe. In this case, a dataframe will be created and returned.
+
+    :param url: the url to a page of trails on trailforks.com
+    :param df: The dataframe
+    """
+    # Send a GET request to the page
+    response = requests.get(url)
+
+    # create a new soup with lxml library
+    soup = BeautifulSoup(response.text, 'lxml')
+
+    # Find the trail table in this soup
+    table = soup.find(id="trails_table")
+
+    #In the case that a df doeesn't already exist, we create one
+    if df is None:
+        print("df is none!")
+        # Will hold all headers in the trail table
+        headers = []
+
+        # For each header in the table, add it to our list of headers
+        for head in table.find_all('th'):
+            title = head.text.strip()
+            headers.append(title)
+        print(headers)
+        df = pd.DataFrame(columns=headers)
+
+    # Start at index 1 to avoid including header names, go through each row in the table
+    # This code referenced from https://www.youtube.com/watch?v=PY2I4UIZk48
+    for row in table.find_all('tr')[1:]:
+        data = row.find_all('td')
+        row_data = [td.text.strip() for td in data]
+        length = len(df)
+        # Add the data from this row to the table
+        df.loc[length] = row_data
+    #return the modified dataframe
+    return df
+
+
+
