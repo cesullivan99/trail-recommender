@@ -8,6 +8,7 @@ from annoy import AnnoyIndex
 import pandas as pd
 import math
 import time
+from os.path import exists
 
 class Trail:
     """
@@ -105,12 +106,15 @@ def trail_new(trail_name):
     return trail_obj
 
 
-def build_region_index(region_name):
+
+
+def build_region_df(region_name):
     """
-    A function that takes in the name of a region and returns a AnnoyIndex object
+    A function that takes in the name of a region and saves the trail data of that region to a pandas dataframe.
+    This dataframe is returned.
 
     :param region_name: the name of the region
-    :return: the AnnoyIndex object
+    :return: the dataframe containing data for the region's trails
     """
     # URL of the region page on Trailforks.com
     url = "https://www.trailforks.com/region/" + region_name + "/trails/"
@@ -131,6 +135,7 @@ def build_region_index(region_name):
         curr_url = "https://www.trailforks.com/region/" + region_name + "/trails/" + "?activitytype=1&page=" + str(i+1)
         scrape_trail_table(curr_url, df)
     print(df)
+    return df
 
 def dist_in_ft(num_str):
     """
@@ -146,6 +151,22 @@ def dist_in_ft(num_str):
     # if input is in feet, just convert it to an integer
     elif "ft" in num_str:
         return int(num_str.split()[0])
+
+def load_region_index(region_name):
+    # This will be the name of the csv containing the region's data, if  it exists
+    region_file = (region_name + "-trails.csv").lower()
+    #Will eventually contain the region's trail data
+    df = None
+    #If we don't already have the file with the region's trail data
+    if not exists(region_file):
+        # Build a dataframe from the region
+        df = build_region_df(region_name)
+        #Write the region file to a csv
+        df.to_csv(region_file)
+    else:
+        df = pd.read_csv(region_file)
+
+
 
 
 def num_trails_in_rgn(region_url):
@@ -185,7 +206,6 @@ def scrape_trail_table(url, df=None):
 
     #In the case that a df doeesn't already exist, we create one
     if df is None:
-        print("df is none!")
         # Will hold all headers in the trail table
         headers = []
 
@@ -193,7 +213,6 @@ def scrape_trail_table(url, df=None):
         for head in table.find_all('th'):
             title = head.text.strip()
             headers.append(title)
-        print(headers)
         df = pd.DataFrame(columns=headers)
 
     # Start at index 1 to avoid including header names, go through each row in the table
