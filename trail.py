@@ -10,6 +10,7 @@ import math
 import time
 from os.path import exists
 
+
 class Trail:
     """
     A class representing a trail
@@ -106,6 +107,21 @@ def trail_new(trail_name):
     return trail_obj
 
 
+def load_region_index(region_name):
+    # This will be the name of the csv containing the region's data, if  it exists
+    region_file = (region_name + "-trails.csv").lower()
+    # Will eventually contain the region's trail data
+    df = None
+    # If we don't already have the file with the region's trail data
+    if not exists(region_file):
+        # Build a dataframe from the region
+        df = build_region_df(region_name)
+        # Write the region file to a csv
+        df.to_csv(region_file, index=False)
+    else:
+        df = pd.read_csv(region_file)
+    print("the loaded dataframe is: ")
+    print(df)
 
 
 def build_region_df(region_name):
@@ -121,21 +137,76 @@ def build_region_df(region_name):
 
     # this equals the number of trails in the given region (we find this so we know how many pages of trails to loop through in the following code)
     num_trails = num_trails_in_rgn(url)
-    #the number of different trailforks.com pages with trails from this region, assuming 100 per page
-    num_trail_pages = math.ceil(num_trails/100)
+    # the number of different trailforks.com pages with trails from this region, assuming 100 per page
+    num_trail_pages = math.ceil(num_trails / 100)
 
-    #we pass in None for the df so that a df will be created
+    # we pass in None for the df so that a df will be created
     df = scrape_trail_table(url, None)
 
     # repeat the above process for all pages of trails in the region
     for i in range(1, num_trail_pages):
-        #sleep for 5 seconds so we don't annoy trailforks.com :)
+        # sleep for 5 seconds so we don't annoy trailforks.com :)
         time.sleep(5)
         # URL of the relevant page
-        curr_url = "https://www.trailforks.com/region/" + region_name + "/trails/" + "?activitytype=1&page=" + str(i+1)
+        curr_url = "https://www.trailforks.com/region/" + region_name + "/trails/" + "?activitytype=1&page=" + str(
+            i + 1)
         scrape_trail_table(curr_url, df)
-    print(df)
+    # drop columns that we don't want from the dataframe
+    df.drop(['', 'riding area', 'rating'], axis=1, inplace=True)
     return df
+
+
+def scrape_trail_table(url, df=None):
+    """
+    This function takes in a url and a dataframe object and scrapes the data from the url's trail table into the given dataframe.
+    The modified dataframe is returned.
+    Note that the given url must lead to a trailforks.com page containing a table of trails.
+    Also, note that a url can be passed in without a dataframe. In this case, a dataframe will be created and returned.
+
+    :param url: the url to a page of trails on trailforks.com
+    :param df: The dataframe
+    """
+    # Send a GET request to the page
+    response = requests.get(url)
+
+    # create a new soup with lxml library
+    soup = BeautifulSoup(response.text, 'lxml')
+
+    # Find the trail table in this soup
+    table = soup.find(id="trails_table")
+
+    # In the case that a df doeesn't already exist, we create one
+    if df is None:
+        # Will hold all headers in the trail table
+        headers = []
+
+        # For each header in the table, add it to our list of headers
+        for head in table.find_all('th'):
+            title = head.text.strip()
+            headers.append(title)
+        # manually setting this value becasue trailforks.com doesn't do it
+        headers[2] = "difficulty"
+        df = pd.DataFrame(columns=headers)
+
+    # Start at index 1 to avoid including header names, go through each row in the table
+    # This code referenced from https://www.youtube.com/watch?v=PY2I4UIZk48
+    for row in table.find_all('tr')[1:]:
+        data = row.find_all('td')
+        # Extracting the portion of data with the trail difficulty
+        difficulty_portion = data[2]
+        # getting the trail difficulty as a string
+        diff_string = difficulty_portion.span['title']
+        diff_int = diff_as_int(diff_string)
+        row_data = [td.text.strip() for td in data]
+        # manually set the difficulty
+        row_data[2] = str(diff_int)
+        length = len(df)
+        # Add the data from this row to the table
+        df.loc[length] = row_data
+    return df
+
+
+# Helper functions below
 
 def dist_in_ft(num_str):
     """
@@ -151,29 +222,6 @@ def dist_in_ft(num_str):
     # if input is in feet, just convert it to an integer
     elif "ft" in num_str:
         return int(num_str.split()[0])
-
-def load_region_index(region_name):
-    # This will be the name of the csv containing the region's data, if  it exists
-    region_file = (region_name + "-trails.csv").lower()
-    #Will eventually contain the region's trail data
-    df = None
-    #If we don't already have the file with the region's trail data
-    if not exists(region_file):
-        # Build a dataframe from the region
-        df = build_region_df(region_name)
-        # Write the region file to a csv
-        #todo: uncomment the below!
-        df.to_csv(region_file)
-    else:
-        df = pd.read_csv(region_file)
-    print("the cols of the loaded dataframe are: ")
-    print(df.columns)
-    print("rows 1, 2, and 3:")
-    print(df.loc[0, :])
-    print(df.loc[1, :])
-    print(df.loc[2, :])
-
-
 
 
 def num_trails_in_rgn(region_url):
@@ -216,61 +264,3 @@ def diff_as_int(diff_string):
         return 8
     elif diff_string == "Chairlifts & gondolas":
         return 9
-
-def scrape_trail_table(url, df=None):
-    """
-    This function takes in a url and a dataframe object and scrapes the data from the url's trail table into the given dataframe.
-    The modified dataframe is returned.
-    Note that the given url must lead to a trailforks.com page containing a table of trails.
-    Also, note that a url can be passed in without a dataframe. In this case, a dataframe will be created and returned.
-
-    :param url: the url to a page of trails on trailforks.com
-    :param df: The dataframe
-    """
-    # Send a GET request to the page
-    response = requests.get(url)
-
-    # create a new soup with lxml library
-    soup = BeautifulSoup(response.text, 'lxml')
-
-    # Find the trail table in this soup
-    table = soup.find(id="trails_table")
-
-    #In the case that a df doeesn't already exist, we create one
-    if df is None:
-        # Will hold all headers in the trail table
-        headers = []
-
-        # For each header in the table, add it to our list of headers
-        for head in table.find_all('th'):
-            title = head.text.strip()
-            headers.append(title)
-        #manually setting this value becasue trailforks.com doesn't do it
-        headers[2] = "difficulty"
-        df = pd.DataFrame(columns=headers)
-
-
-    # Start at index 1 to avoid including header names, go through each row in the table
-    # This code referenced from https://www.youtube.com/watch?v=PY2I4UIZk48
-    for row in table.find_all('tr')[1:]:
-        data = row.find_all('td')
-        #Extracting the portion of data with the trail difficulty
-        difficulty_portion = data[2]
-        #getting the trail difficulty as a string
-        diff_string = difficulty_portion.span['title']
-        diff_int = diff_as_int(diff_string)
-        row_data = [td.text.strip() for td in data]
-        print("row_data before " + str(row_data))
-        #manually set the difficulty
-        row_data[2] = str(diff_int)
-        print("row_data after " + str(row_data))
-        length = len(df)
-        # Add the data from this row to the table
-        df.loc[length] = row_data
-    #drop columns that we don't want from the dataframe
-    df.drop(['', 'riding area', 'rating'], axis=1, inplace=True)
-    print(df)
-    return df
-
-
-
