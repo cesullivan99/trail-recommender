@@ -161,10 +161,17 @@ def load_region_index(region_name):
     if not exists(region_file):
         # Build a dataframe from the region
         df = build_region_df(region_name)
-        #Write the region file to a csv
+        # Write the region file to a csv
+        #todo: uncomment the below!
         df.to_csv(region_file)
     else:
         df = pd.read_csv(region_file)
+    print("the cols of the loaded dataframe are: ")
+    print(df.columns)
+    print("rows 1, 2, and 3:")
+    print(df.loc[0, :])
+    print(df.loc[1, :])
+    print(df.loc[2, :])
 
 
 
@@ -184,6 +191,31 @@ def num_trails_in_rgn(region_url):
     print("there are " + str(num_trails) + " trails in the region.")
     return num_trails
 
+
+def diff_as_int(diff_string):
+    """
+    It takes a string representing a trail difficulty, then return an int representing that difficulty as an integer
+
+    :param diff_string: The string that contains the difficulty of the trail
+    """
+    if diff_string == "Access Road/Trail":
+        return 1
+    elif diff_string == "Secondary Access Road/Trail":
+        return 2
+    elif diff_string == "Easiest / White Circle":
+        return 3
+    elif diff_string == "Easy / Green Circle":
+        return 4
+    elif diff_string == "Intermediate / Blue Square":
+        return 5
+    elif diff_string == "Very Difficult / Black Diamond":
+        return 6
+    elif diff_string == "Extremely Difficult / Dbl Black Diamond":
+        return 7
+    elif diff_string == "Extremely dangerous, pros only!":
+        return 8
+    elif diff_string == "Chairlifts & gondolas":
+        return 9
 
 def scrape_trail_table(url, df=None):
     """
@@ -213,17 +245,31 @@ def scrape_trail_table(url, df=None):
         for head in table.find_all('th'):
             title = head.text.strip()
             headers.append(title)
+        #manually setting this value becasue trailforks.com doesn't do it
+        headers[2] = "difficulty"
         df = pd.DataFrame(columns=headers)
+
 
     # Start at index 1 to avoid including header names, go through each row in the table
     # This code referenced from https://www.youtube.com/watch?v=PY2I4UIZk48
     for row in table.find_all('tr')[1:]:
         data = row.find_all('td')
+        #Extracting the portion of data with the trail difficulty
+        difficulty_portion = data[2]
+        #getting the trail difficulty as a string
+        diff_string = difficulty_portion.span['title']
+        diff_int = diff_as_int(diff_string)
         row_data = [td.text.strip() for td in data]
+        print("row_data before " + str(row_data))
+        #manually set the difficulty
+        row_data[2] = str(diff_int)
+        print("row_data after " + str(row_data))
         length = len(df)
         # Add the data from this row to the table
         df.loc[length] = row_data
-    #return the modified dataframe
+    #drop columns that we don't want from the dataframe
+    df.drop(['', 'riding area', 'rating'], axis=1, inplace=True)
+    print(df)
     return df
 
 
