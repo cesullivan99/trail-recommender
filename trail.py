@@ -136,7 +136,7 @@ def load_region_index(region_name):
         # Build a dataframe from the region
         df = build_region_df(region_name)
         # Write the region file to a csv
-        df.to_csv(region_file, index=False)
+        df.to_csv(region_file)
     else:
         df = pd.read_csv(region_file)
     print("the loaded dataframe is: ")
