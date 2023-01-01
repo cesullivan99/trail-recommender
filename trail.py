@@ -16,7 +16,8 @@ class Trail:
     A class representing a trail
 
     Attributes:
-        name (str): The name of the trail
+        title (str): The name of the trail
+        difficulty (int): The difficulty of the trail, an integer between 1 and 9
         distance (int): the length of the trail
         descent (int): the length of the trail's descent
         climb (int): the length of the trail's climb
@@ -28,30 +29,36 @@ class Trail:
     """
 
     # Constructs the trail object
-    def __init__(self, name, distance, descent, climb):
+    def __init__(self, title, difficulty, distance, descent, climb):
         """
         The function takes in the name, distance, descent, and climb of a trail and assigns them to the
         corresponding attributes of the trail.
 
-        :param name: the name of the trail
+        :param title: the name of the trail
+        :param difficulty: the difficulty of the trail, a integer between 1 and 9
         :param distance: the distance of the trail in miles
         :param descent: the total elevation descent in meters
         :param climb: the total elevation gain in meters
         """
 
-        self.name = name
+        self.title = title
+        self.difficulty = difficulty
         self.distance = distance
-        # descent/climb ratio
-        self.dc = descent / climb
+        self.descent = descent
+        self.climb = climb
 
     def __str__(self):
         """
-        The function returns the name of the trail
+        The function returns a string representation of the trail object
 
-        :return: the name of the trail
+        :return: a string representation of the trail
         """
-        stringy = "Trail name: " + self.name + '\n' + "Distance: " + str(
-            self.distance) + '\n' + "Descent/climb ratio: " + str(self.dc)
+        title_str = "Trail name: " + self.title
+        difficulty_str = "Difficulty: " + str(self.difficulty)
+        distance_str = "Distance: " + str(self.distance)
+        descent_str = "Descent: " + str(self.descent)
+        climb_str = "Climb: " + str(self.climb)
+        stringy = title_str + '\n' + difficulty_str + '\n' + distance_str + '\n' + descent_str + '\n' + climb_str + '\n'
         return stringy
 
 
@@ -73,6 +80,13 @@ def trail_new(trail_name):
     # Parse the page's HTML
     soup = BeautifulSoup(response.text, 'html.parser')
 
+    # Find the part of the soup concerning trail difficulty
+    diff = soup.find(class_="title-type larger diffratingvoteLink")
+    # find the string concerning trail difficulty
+    diff_string = diff.span['title']
+    # convert trail difficulty to an integer
+    diff_int = diff_as_int(diff_string)
+
     # find the block of basic trail stats that we want
     stats = soup.find(id="basicTrailStats")
 
@@ -93,6 +107,9 @@ def trail_new(trail_name):
         # add to the dictionary
         attributes[att] = stat
 
+    # initializing attributes to 0
+    distance_num, climb_num, descent_num = 0, 0, 0
+
     if "Distance" in attributes:
         # Distance in feet
         distance_num = dist_in_ft(attributes["Distance"])
@@ -103,7 +120,9 @@ def trail_new(trail_name):
         # Descent in feet
         descent_num = dist_in_ft(attributes["Descent"])
 
-    trail_obj = Trail(name=trail_name, distance=distance_num, descent=descent_num, climb=climb_num)
+    trail_obj = Trail(title=trail_name, difficulty=diff_int, distance=distance_num, descent=descent_num,
+                      climb=climb_num)
+    print(trail_obj)
     return trail_obj
 
 
