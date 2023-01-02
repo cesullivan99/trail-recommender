@@ -141,6 +141,9 @@ def load_region_index(region_name):
         df = pd.read_csv(region_file)
     print("the loaded dataframe is: ")
     print(df)
+    # Convert the df to numpy arrays
+    array = df[['difficulty', 'distance', 'descent', 'climb']].to_numpy()
+    print(array)
 
 
 def build_region_df(region_name):
@@ -172,6 +175,10 @@ def build_region_df(region_name):
         scrape_trail_table(curr_url, df)
     # drop columns that we don't want from the dataframe
     df.drop(['', 'riding area', 'rating'], axis=1, inplace=True)
+    #Convert all distances in the df to distances in feet
+    column_names = ['distance', 'descent', 'climb']
+    #convert all distances to integer distances in feet
+    df[column_names] = df[column_names].applymap(dist_in_ft)
     return df
 
 
@@ -218,7 +225,7 @@ def scrape_trail_table(url, df=None):
         diff_int = diff_as_int(diff_string)
         row_data = [td.text.strip() for td in data]
         # manually set the difficulty
-        row_data[2] = str(diff_int)
+        row_data[2] = diff_int
         length = len(df)
         # Add the data from this row to the table
         df.loc[length] = row_data
@@ -236,11 +243,15 @@ def dist_in_ft(num_str):
     # remove commas, which may mess with the numbers here
     num_str = num_str.replace(",", "")
     # if the input represented in miles, convert it to feet
-    if "miles" in num_str:
-        return int(5280 * float(num_str.split()[0]))
+    if "miles" in num_str or "mile" in num_str:
+        return_val = int(5280 * float(num_str.split()[0]))
+        #print("we return " + str(return_val))
+        return return_val
     # if input is in feet, just convert it to an integer
     elif "ft" in num_str:
-        return int(num_str.split()[0])
+        return_val = int(num_str.split()[0])
+        #print("we return " + str(return_val))
+        return return_val
 
 
 def num_trails_in_rgn(region_url):
