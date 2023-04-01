@@ -71,17 +71,34 @@ def trail_new(trail_name):
     :return: the trail object
     """
 
-    # URL of the trail page on trailforks.com
-    url = 'https://www.trailforks.com/trails/' + trail_name
-
-    # Request the page's HTML from trailforks.com
+    # BEGINNING OF MTB PROJECT CODE
+    # Search for the trail name
+    url = f'https://www.mtbproject.com/search?q={trail_name}'
     response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    print(soup)
+
+    # Extract the first search result URL
+    # TODO - find search results with web driver
+    search_results = soup.find_all('div', class_='sc-dPWrhe digRqT')
+    if len(search_results) == 0:
+        print(f"No results found for '{trail_name}'")
+        return
+    first_result = search_results[0]
+    trail_url = first_result.find('a')['href']
+
+    # Scrape the trail page
+    response = requests.get(trail_url)
 
     # Parse the page's HTML
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # Find the part of the soup concerning trail difficulty
-    diff = soup.find(class_="title-type larger diffratingvoteLink")
+    diff = soup.find(class_="difficulty-text text-white align-middle")
+    print(diff)
+    exit()
+    # END OF MTB Project code 
+    
     # find the string concerning trail difficulty
     diff_string = diff.span['title']
     # convert trail difficulty to an integer
@@ -260,10 +277,11 @@ def num_trails_in_rgn(region_url):
 
     :param region_url: the url of the region you want to get the number of trails for
     """
-
+    print("region url is ", region_url)
     response = requests.get(region_url)
     # Parse the page's HTML
     name_soup = BeautifulSoup(response.text, 'html.parser')
+    print("name soup is ", name_soup)
     # this equals the number of trails in the given region (we find this so we know how many pages of trails to loop through in the following code)
     num_trails = int(name_soup.find("div", class_="resultTotal").strong.string)
     print("there are " + str(num_trails) + " trails in the region.")
